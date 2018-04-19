@@ -27,7 +27,7 @@ int main(int argc, string argv[])
     // Get plaintext from user
     plaintext = get_string("plaintext: ");
 
-    // Cipheded text will appear after "ciphertext: "
+    // Ciphered text will appear after "ciphertext: "
     printf("ciphertext: ");
 
     // Loop through plaintext adding key to each character
