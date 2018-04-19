@@ -31,7 +31,7 @@ int main(int argc, string argv[])
     printf("ciphertext: ");
 
     // Loop through plaintext adding key to each character
-    for (int i = 0, plainTextLength = strlen(argv[1]); i < plainTextLength; i++)
+    for (int i = 0, plaintextLength = strlen(plaintext); i < plaintextLength; i++)
     {
 
         // Check to see if character is Alpha or not
