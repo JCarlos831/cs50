@@ -1,9 +1,13 @@
 // Helper functions for music
 
 #include <cs50.h>
-
+#include <ctype.h>
 #include "helpers.h"
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 // Converts a fraction formatted as X/Y to eighths
 int duration(string fraction)
@@ -15,24 +19,25 @@ int duration(string fraction)
     denominator = fraction[2];
     if (denominator == '8')
     {
-        eighths = atoi(fraction[0]);
+        eighths = atoi(&fraction[0]);
         return eighths;
     }
     else if (denominator == '4')
     {
-        eighths = (atoi(fraction[0])) * 2;
+        eighths = (atoi(&fraction[0])) * 2;
         return eighths;
     }
     else if (denominator == '2')
     {
-        eighths = (atoi(fraction[0])) * 4;
+        eighths = (atoi(&fraction[0])) * 4;
         return eighths;
     }
     else if (denominator == '1')
     {
-        eighths = (atoi(fraction[0])) * 8;
+        eighths = (atoi(&fraction[0])) * 8;
         return eighths;
     }
+    return 0;
 }
 
 // Calculates frequency (in Hz) of a note
@@ -49,9 +54,12 @@ int frequency(string note)
     // if string is of lenght 3, then note is note[0], accidental is note[1], and octave is note[2] or strlen(note) - 1
     int octave = note[strlen(note) - 1];
 
+    // Take Ascii value and convert to int value
+    octave -= 48;
+
 
     // Check for note
-    // A4 = 440hz --- semitone increase multiply by 2 1/12power --- semitone decrease divide by 2 1/12power
+    // A4 = 440hz --- semitone increase multiply by 2 1/12 power --- semitone decrease divide by 2 1/12 power
     if (note[0] == 'A')
     {
         f = 440.0;
@@ -85,7 +93,7 @@ int frequency(string note)
     // Account for accidentals
     if (note[1] == 'b')
     {
-        f /= (pow(2.0, (2.0, (1.0 / 12.0))));
+        f /= (pow(2.0, (1.0 / 12.0)));
     }
     else if (note[1] == '#')
     {
@@ -120,7 +128,7 @@ int frequency(string note)
 bool is_rest(string s)
 {
     // TODO
-    if (s[0] == "\0")
+    if (s[0] == 0)
     {
         return true;
     }
