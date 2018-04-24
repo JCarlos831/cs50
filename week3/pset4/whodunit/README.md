@@ -14,10 +14,10 @@ These are signed and unsigned integer types with fixed widths. The signed intege
 ## How many bytes is a `BYTE`, a `DWORD`, a `LONG`, and a `WORD`, respectively?
 
 TODO
-`BYTE` is a single byte
-`DWORD` is 4 bytes
-`LONG` is 4 bytes
-`WORD` is 2 bytes
+`BYTE` is a single byte or 8 bits
+`DWORD` is 4 bytes and is a 32-bit unsigned integer (range: 0 through 4294967295 decimal).
+`LONG` is 4 bytes and is a 32-bit signed integer, in twos-complement format (range: –2147483648 through 2147483647 decimal).
+`WORD` is 2 bytes and is a 16-bit unsigned integer (range: 0 through 65535 decimal).
 
 ## What (in ASCII, decimal, or hexadecimal) must the first two bytes of any BMP file be? Leading bytes used to identify file formats (with high probability) are generally called "magic numbers."
 
