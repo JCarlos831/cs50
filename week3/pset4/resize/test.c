@@ -92,12 +92,31 @@ int main(int argc, char *argv[])
                     // read RGB triple from infile
                     fread(&triple, sizeof(RGBTRIPLE), 1, inptr);
 
+                    for (int o = 0; o < n - 1; o++)
+                    {
                         // write RGB triple to outfile
                         for (int m = 0; m < n; m++)
                         {
                             fwrite(&triple, sizeof(RGBTRIPLE), 1, outptr);
                         }
 
+                        // skip over padding, if any
+                        fseek(inptr, padding, SEEK_CUR);
+
+                        // then add it back (to demonstrate how)
+                        for (int k = 0; k < padding; k++)
+                        {
+                            fputc(0x00, outptr);
+                        }
+
+                        fseek(inptr, -(bi.biWidth * sizeof(RGBTRIPLE)), SEEK_CUR);
+                    }
+
+               // write RGB triple to outfile
+                for (int m = 0; m < n; m++)
+                {
+                    fwrite(&triple, sizeof(RGBTRIPLE), 1, outptr);
+                }
             }
 
 
