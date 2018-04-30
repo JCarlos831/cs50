@@ -137,3 +137,38 @@ bool is_rest(string s)
         return false;
     }
 }
+
+/*
+
+/// **** PEER REVIEW ****
+
+ ****Bday.txt****
+ bday.txt works with ./synthesize to produce bday.wav and plays the file correctly
+
+ ****is_Rest****
+ I'm a little confused with is_rest()
+ Everything is compiling properly and check50 is working
+ so I'm guessing I took an extra step and it wasnt necessary to use strcmp.
+ ------->I used srtcmp to compare string s to an empty string ("").
+        This method results in a 0 if the strings are the same (an empty line as string s and an empty string to compare it to).
+        So if the srtcmp came back with 0 it indicates to respond with true
+ I'm guessing theres something about the way a rest is recognized that allows s[0] to be represented by 0.
+
+
+ ****Duration****
+The function is straight forward but it might be more efficient to write it as a case statement.
+Excellent use of the '&' (I spent a lot of time trying to figure of the error I was getting without these in my variables).
+
+****Frequency
+Excellect use of double for added acuracy to your variables.
+Excellent method of finding/parsing the string into Octaves and then converting it into its acsii value.
+For the if/else statement parsing notes this is straightforward but I'm guessing it could be more eccifient
+if there was a formula that determined the power that the frequency is multiplied by.
+The code is straightforward and follows a sensibe progression through parsing each element that calculating for
+notes then octaves then accidentals.
+I really appreciate the code on line 105, this is a really simple way to calculate the impact of different octaves.
+Excellent job!!!
+
+
+
+*/
