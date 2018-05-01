@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     // ensure proper usage
     if (argc != 4)
     {
-        fprintf(stderr, "Usage: copy infile outfile\n");
+        fprintf(stderr, "Usage: resize scale infile outfile\n");
         return 1;
     }
 
@@ -79,21 +79,25 @@ int main(int argc, char *argv[])
     // New padding for scanlines
     int padding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
 
+    // New bi.biSizeImage
+    bi.biSizeImage = ((sizeof(RGBTRIPLE) * bi.biWidth) + padding) * abs(bi.biHeight);
+
+    // New bf.bfSize
+    bf.bfSize = bi.biSizeImage + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
     // write outfile's BITMAPFILEHEADER
     fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
 
     // write outfile's BITMAPINFOHEADER
     fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr);
 
-    // // determine padding for scanlines
-    // int padding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
-
     // iterate over infile's scanlines
     for (int i = 0, biHeight = abs(bi.biHeight); i < biHeight; i++)
     {
+        // vertical scale
         for (int m = 0; m < n; m++)
         {
-            // iterate over pixels in scanline
+            // iterate over pixels in infile's scanline
             for (int j = 0; j < origWidth; j++)
             {
                 // temporary storage
@@ -115,7 +119,8 @@ int main(int argc, char *argv[])
                 fputc(0x00, outptr);
             }
 
-            // set cursor back
+            // set cursor back if m is less than scale using the infile's width multiplied by the size of the RGBTRIPLE
+            // to get the number of bytes needed to go back from the cursor's current position
             if (m < n - 1)
             {
                 fseek(inptr, -(origWidth * sizeof(RGBTRIPLE)), SEEK_CUR);
