@@ -91,8 +91,10 @@ int main(int argc, char *argv[])
     // iterate over infile's scanlines
     for (int i = 0, biHeight = abs(bi.biHeight); i < biHeight; i++)
     {
+        for (int m = 0; m < n; m++)
+        {
             // iterate over pixels in scanline
-            for (int j = 0; j < bi.biWidth; j++)
+            for (int j = 0; j < origWidth; j++)
             {
                 // temporary storage
                 RGBTRIPLE triple;
@@ -105,8 +107,6 @@ int main(int argc, char *argv[])
                 {
                     fwrite(&triple, sizeof(RGBTRIPLE), 1, outptr);
                 }
-
-
             }
 
             // add outfile's padding
@@ -114,6 +114,14 @@ int main(int argc, char *argv[])
             {
                 fputc(0x00, outptr);
             }
+
+            // set cursor back
+            if (m < n - 1)
+            {
+                fseek(inptr, -(origWidth * sizeof(RGBTRIPLE)), SEEK_CUR);
+            }
+
+        }
 
             // skip over infile's padding, if any
             fseek(inptr, origPadding, SEEK_CUR);
