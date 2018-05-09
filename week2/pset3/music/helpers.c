@@ -107,7 +107,6 @@ int frequency(string note)
         for (int i = 0; i < octave - 4; i++)
         {
             f *= 2.0;
-
         }
     }
     // Account for octave 0, 1, 2, 3

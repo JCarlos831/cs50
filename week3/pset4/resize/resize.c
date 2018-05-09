@@ -66,12 +66,12 @@ int main(int argc, char *argv[])
     // Original bi.biWidth & bi.biHeight
     long origWidth = bi.biWidth;
     long origHeight = bi.biHeight;
-    printf("Original Width: %lu & Original Height: %lu.\n", origWidth, origHeight);
+    // printf("Original Width: %lu & Original Height: %lu.\n", origWidth, origHeight);
 
     // New bi.biWidth
     bi.biWidth *= n;
     bi.biHeight *= n;
-    printf("new width: %d & new height: %d.\n", bi.biWidth, bi.biHeight);
+    // printf("new width: %d & new height: %d.\n", bi.biWidth, bi.biHeight);
 
     // Original padding for scanlines
     int origPadding = (4 - (origWidth * sizeof(RGBTRIPLE)) % 4) % 4;
@@ -91,13 +91,10 @@ int main(int argc, char *argv[])
     // write outfile's BITMAPINFOHEADER
     fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr);
 
-    // // determine padding for scanlines
-    // int padding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
-
-    // iterate over infile's scanlines
-    for (int i = 0, biHeight = abs(bi.biHeight); i < biHeight; i++)
+    // iterate over infile's scanlines so use infile's height
+    for (int i = 0, biHeight = labs(origHeight); i < biHeight; i++)
     {
-        // vertical scale
+        // vertical scale for outfile
         for (int m = 0; m < n; m++)
         {
             // iterate over pixels in infile's scanline
@@ -123,7 +120,8 @@ int main(int argc, char *argv[])
             }
 
             // set cursor back if m is less than scale using the infile's width multiplied by the size of the RGBTRIPLE
-            // to get the number of bytes needed to go back from the cursor's current position
+            // (total number of bytes on that scanline) to get the number of bytes needed to go back from the cursor's
+            // current position
             if (m < n - 1)
             {
                 fseek(inptr, -(origWidth * sizeof(RGBTRIPLE)), SEEK_CUR);
@@ -131,8 +129,8 @@ int main(int argc, char *argv[])
 
         }
 
-            // skip over infile's padding, if any
-            fseek(inptr, origPadding, SEEK_CUR);
+        // skip over infile's padding, if any
+        fseek(inptr, origPadding, SEEK_CUR);
     }
 
     // close infile

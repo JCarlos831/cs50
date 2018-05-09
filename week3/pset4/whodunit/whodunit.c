@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
             fread(&triple, sizeof(RGBTRIPLE), 1, inptr);
 
             // write RGB triple to outfile
+            // Change white pixels by removing any green and red they may have had and just leave blue
             if (triple.rgbtBlue == 0xff && triple.rgbtGreen == 0xff && triple.rgbtRed == 0xff)
             {
                 triple.rgbtBlue = 0xff;
