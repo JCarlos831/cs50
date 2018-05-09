@@ -68,4 +68,7 @@ int main(int argc, char *argv[])
 
     }
 
+    fclose(infileptr);
+    fclose(img);
+
 }
