@@ -1,75 +1,71 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+typedef uint8_t BYTE;
 
-int main (int argc, char *argv[])
+// Set command line arguments
+int main(int argc, char *argv[])
 {
+    // Check to see if there are not 2 command line arguments
     if (argc != 2)
     {
+        // If not 2 arguments, display error message
         fprintf(stderr, "Usage: ./<program name> <name of forensic image>\n");
         return 1;
     }
 
-    char *sdCard = argv[1];
+    // Set the second command line argument (the file to be checked) to a variable
+    char *infile = argv[1];
 
-    FILE *sdCardPtr = fopen(sdCard, "r");
+    // Create a file pointer and open the file to be read
+    FILE *infileptr = fopen(infile, "r");
 
-    if (sdCardPtr == NULL)
+    // Check to see that the file pointer is NULL
+    if (infileptr == NULL)
     {
-        fprintf(stderr, "Could not open %s.\n", sdCard);
+        // If file pointer is NULL (meaning the card could not be open), display error message
+        fprintf(stderr, "Could not open %s.\n", infile);
         return 2;
     }
 
-    // size of each block
-    int size = 512;
 
-    // set buffer array
-    int buffer[512];
+    // Create a buffer of 512 bytes
+    BYTE buffer[512];
 
-   // jpeg counter
-    int jpeg = 0;
+    // declare filename array of size 8 for filenames being produced (###.jpg\0).
+    char filename[8];
 
-    char *newCard = NULL;
+    // Create file pointer for file that will be written to. Set to null, so that it is not assigned a garbage value
+    FILE *img = NULL;
 
-    // while reading each 512 byte block...
-    while (fread(buffer, size, 1, sdCardPtr)) {
+    // keep track of jpgs
+    int jpg = 0;
+
+    // while reading each indvidual block of 512 bytes...exit loop if there is no block of size 512 to read
+    while (fread(&buffer, sizeof(buffer), 1, infileptr) == 1)
+    {
         // check for a jpg by matching the first 4 bytes of a block
         // is this the start of a new jpg?
         if (buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0)
-            {
-                printf("It's a match");
+        {
+            // Create a filename for new jpg
+            sprintf(filename, "%03i.jpg", jpg);
 
-                // sprintf(infile, "%03i.jpg", jpeg);
-                sprintf(newCard, "%03i.jpg", jpeg);
+            // Open the file to be written to and allow it to be written to
+            img = fopen(filename, "w");
 
-                FILE *img = fopen(newCard, "w");
+            // Write out the file
+            fwrite(buffer, sizeof(buffer), 1, img);
 
-                fwrite(sdCardPtr, size, 1, img);
-                jpeg++;
-            }
-            else
-            {
-
-            }
-
-                // if a jpeg has already been found and then another is found
-                if (buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xf0) == 0xe0)
-                {
-                    fclose(img);
-
-                    FILE *img = fopen(newCard, "w");
-
-                    fopen(newCard, "w");
-
-                    sprintf(newCard, "%03i.jpg", jpeg);
-
-                    fwrite(sdCardPtr, 512, 1, img);
-                    jpeg++;
-                    fclose(img);
-                }
+            // Increment the jpg counter
+            jpg++;
+        }
+        // If the image is not null that means jpg is already open...continue to write until the start of next jpg header is found
+        else if (img != NULL)
+        {
+            fwrite(buffer, sizeof(buffer), 1, img);
         }
 
-    fclose(sdCardPtr);
+    }
 
-    return 0;
 }
