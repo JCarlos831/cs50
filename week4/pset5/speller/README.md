@@ -2,15 +2,19 @@
 
 ## What is pneumonoultramicroscopicsilicovolcanoconiosis?
 
-TODO
+It is a term referring to a lung disease caused by silica dust. It is also cited as one of the longest words
+in the English language.
 
 ## According to its man page, what does `getrusage` do?
 
-TODO
+It can return usage statistics on user CPU time used, system CPU time used, maximum resident set size, integral shared memory size,
+integral unsahred data size, integral unshared stack size, page reclaims (soft page faults), page faults (hard page faults),
+swaps, block input operations, block output operations, IPC messages ent, IPC messages received, signals received, voluntary context
+switches, and involuntary context switches.
 
 ## Per that same man page, how many members are in a variable of type `struct rusage`?
 
-TODO
+16
 
 ## Why do you think we pass `before` and `after` by reference (instead of by value) to `calculate`, even though we're not changing their contents?
 
