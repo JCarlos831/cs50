@@ -15,5 +15,5 @@ https://github.com/JCarlos831/cs50/tree/master/week3/pset4
 # PSet 5:
 https://github.com/JCarlos831/cs50/tree/master/week4/pset5
 
-#PSet 6:
+# PSet 6:
 https://github.com/JCarlos831/cs50/tree/master/week7/pset6
