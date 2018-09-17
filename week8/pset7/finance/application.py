@@ -109,8 +109,25 @@ def logout():
 @login_required
 def quote():
     """Get stock quote."""
-    return apology("TODO")
 
+    if request.method == "POST":
+
+        # Ensure quote field is not blank
+        if not request.form.get("quote"):
+            return apology("Missing stock symbol!")
+        else:
+            quote = lookup(request.form.get("quote").upper())
+            print(quote)
+            return render_template("quoteDisplay.html", symbol=quote["symbol"], name=quote["name"], price=quote["price"])
+
+    else:
+        return render_template("quote.html")
+
+@app.route("/quoteDisplay")
+@login_required
+def quoteDisplay():
+    """Display stock quote"""
+    return render_template("quoteDisplay.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -151,8 +168,9 @@ def register():
         # Redirect user to home page
         return redirect("/")
 
-    return render_template("register.html")
-
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("register.html")
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
@@ -169,3 +187,5 @@ def errorhandler(e):
 # listen for errors
 for code in default_exceptions:
     app.errorhandler(code)(errorhandler)
+
+
