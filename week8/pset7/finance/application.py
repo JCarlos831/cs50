@@ -47,7 +47,24 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+
+        # Ensure quote field is not blank
+        if not request.form.get("symbol"):
+            return apology("Missing stock symbol!")
+
+        stock = lookup(request.form.get("symbol"))
+        shares = request.form.get("shares")
+        if not stock:
+            return apology("Symbol is invalid")
+
+        if not shares:
+            return apology("You can't buy zero stocks")
+
+        return render_template("buyConfirmation.html", stock=stock, shares=shares)
+
+    else:
+        return render_template("buy.html")
 
 
 @app.route("/history")
@@ -113,12 +130,14 @@ def quote():
     if request.method == "POST":
 
         # Ensure quote field is not blank
-        if not request.form.get("quote"):
+        if not request.form.get("symbol"):
             return apology("Missing stock symbol!")
-        else:
-            quote = lookup(request.form.get("quote").upper())
-            print(quote)
-            return render_template("quoteDisplay.html", symbol=quote["symbol"], name=quote["name"], price=quote["price"])
+
+        stock = lookup(request.form.get("symbol"))
+        if not stock:
+            return apology("Symbol is invalid")
+
+        return render_template("quoteDisplay.html", stock=stock)
 
     else:
         return render_template("quote.html")

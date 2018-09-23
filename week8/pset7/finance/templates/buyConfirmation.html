@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Purchase Confirmation
+{% endblock %}
+
+{% block main %}
+    <h1>Purchase Confirmation</h1>
+        <p> You have purchased {{ shares }} shares of {{ stock.name }} at ${{ stock.price }} per share.</p>
+{% endblock %}
