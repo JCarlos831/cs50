@@ -6,6 +6,7 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
 
 from helpers import apology, login_required, lookup, usd
 
@@ -40,7 +41,9 @@ db = SQL("sqlite:///finance.db")
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    # stock = lookup(request.form.get("symbol"))
+    # shares = request.form.get("shares")
+    return render_template("index.html")
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -61,7 +64,18 @@ def buy():
         if not shares:
             return apology("You can't buy zero stocks")
 
-        return render_template("buyConfirmation.html", stock=stock, shares=shares)
+        cash = db.execute("SELECT cash FROM users WHERE id= :id", id = session["user_id"])
+
+        userCash = cash[0]["cash"]
+        stockPrice = stock.get("price")
+        totalPrice = round((float(shares) * stockPrice), 2)
+
+        if userCash < totalPrice:
+            return apology("Not enough funds")
+        else:
+            db.execute("INSERT INTO portfolio (name, shares, price, user_id) VALUES (:name, :shares, :price, :user_id)", name=stock.get("name"), shares=shares, price=stock.get("price"), user_id=session["user_id"])
+            db.execute("UPDATE users SET cash = cash - :totalPrice WHERE id = :id", totalPrice=totalPrice, id=session["user_id"])
+            return render_template("buyConfirmation.html", stock=stock, shares=shares, totalPrice=totalPrice)
 
     else:
         return render_template("buy.html")
