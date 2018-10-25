@@ -43,6 +43,7 @@ def index():
     """Show portfolio of stocks"""
     # stock = lookup(request.form.get("symbol"))
     # shares = request.form.get("shares")
+
     return render_template("index.html")
 
 
@@ -51,31 +52,67 @@ def index():
 def buy():
     """Buy shares of stock"""
     if request.method == "POST":
-
         # Ensure quote field is not blank
         if not request.form.get("symbol"):
             return apology("Missing stock symbol!")
 
+        # Lookup stock
         stock = lookup(request.form.get("symbol"))
-        shares = request.form.get("shares")
+
+        # If stock could not be found
         if not stock:
-            return apology("Symbol is invalid")
+            return apology("Please enter a valid stock")
 
+        # Get number of shares from buy form
+        shares = request.form.get("shares")
+
+        # Ensure shares are not blank
         if not shares:
-            return apology("You can't buy zero stocks")
+            return apology("Shares must not be blank")
 
-        cash = db.execute("SELECT cash FROM users WHERE id= :id", id = session["user_id"])
+        # Make shares an int
+        shares = int(shares)
 
-        userCash = cash[0]["cash"]
-        stockPrice = stock.get("price")
-        totalPrice = round((float(shares) * stockPrice), 2)
+        # Ensure shares can not be zero or negative
+        if shares <= 0:
+            return apology("Shares must not be Zero or Negative")
 
-        if userCash < totalPrice:
-            return apology("Not enough funds")
+        # get the user's cash from the database
+        cash = db.execute("SELECT cash FROM users WHERE id = :id", id = session["user_id"])
+
+        # convert cash to USD
+        cash = cash[0]["cash"]
+        print(cash)
+
+        totalPurchase = stock["price"] * shares
+        print(totalPurchase)
+
+        # check to see if user has enough cash for the stock purchase
+        if cash < totalPurchase:
+            return apology("Not enough funds for this purchase")
+
+        # update transactions
+        db.execute("INSERT INTO transactions (symbol, name, shares, price, total, user_id) VALUES (:symbol, :name, :shares, :price, :total, :user_id)",
+        symbol=stock["symbol"], name=stock["name"], shares=shares, price=stock["price"], total=totalPurchase, user_id=session["user_id"])
+
+        # update the user's cash
+        db.execute("UPDATE users SET cash = cash - :totalPurchase WHERE id = :id", id=session["user_id"], totalPurchase=totalPurchase)
+
+        user_shares = db.execute("SELECT shares FROM portfolio WHERE user_id = :user_id AND symbol = :symbol", user_id=session["user_id"], symbol=stock["symbol"])
+
+        # if the user does not have any shares of a particular symbol add new stock row to portfolio
+        if not user_shares:
+            db.execute("INSERT INTO portfolio (symbol, name, shares, current_price, share_value, user_id) VALUES (:symbol, :name, :shares, :current_price, :share_value, :user_id)",
+            symbol=stock["symbol"], name=stock["name"], shares=shares, current_price=stock["price"], share_value=totalPurchase, user_id=session["user_id"])
+
+        # update number of shares for the particular symbol for the particular user
         else:
-            db.execute("INSERT INTO portfolio (name, shares, price, user_id) VALUES (:name, :shares, :price, :user_id)", name=stock.get("name"), shares=shares, price=stock.get("price"), user_id=session["user_id"])
-            db.execute("UPDATE users SET cash = cash - :totalPrice WHERE id = :id", totalPrice=totalPrice, id=session["user_id"])
-            return render_template("buyConfirmation.html", stock=stock, shares=shares, totalPrice=totalPrice)
+            totalShares = user_shares[0]["shares"] + shares
+            share_value = totalShares * stock["price"]
+            db.execute("UPDATE portfolio SET shares = :shares, current_price = :current_price, share_value = :share_value WHERE user_id = :user_id AND symbol = :symbol",
+            shares=totalShares, current_price=stock["price"], share_value=share_value, user_id=session["user_id"], symbol=stock["symbol"])
+
+        return render_template("index.html")
 
     else:
         return render_template("buy.html")

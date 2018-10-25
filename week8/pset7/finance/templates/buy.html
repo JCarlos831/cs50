@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block main %}
+    <h1>Current cash: ${{ userCash }}</h1>
     <form action="/buy" method="post">
         <div class="form-group">
             <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Stock Symbol ie. AAPL" type="text"/>
