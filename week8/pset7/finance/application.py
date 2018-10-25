@@ -1,7 +1,7 @@
 import os
 
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
@@ -44,7 +44,28 @@ def index():
     # stock = lookup(request.form.get("symbol"))
     # shares = request.form.get("shares")
 
-    return render_template("index.html")
+    portfolio = db.execute("SELECT * FROM portfolio WHERE user_id = :user_id", user_id=session["user_id"])
+
+    for p in portfolio:
+        symbol = p["symbol"]
+        shares = p["shares"]
+        price = p["current_price"]
+        share_value = p["share_value"]
+
+    totalValueOfAllShares = db.execute("SELECT SUM(share_value) FROM portfolio WHERE user_id = :user_id", user_id=session["user_id"])
+    totalValueOfAllShares = totalValueOfAllShares[0]['SUM(share_value)']
+    print(totalValueOfAllShares)
+    cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
+    cash = cash[0]["cash"]
+
+    grandTotal = usd(cash + totalValueOfAllShares)
+
+    cash = usd(cash)
+    totalValueOfAllShares = usd(totalValueOfAllShares)
+
+
+
+    return render_template("index.html", portfolio=portfolio, grandTotal = grandTotal, cash=cash, totalValueOfAllShares=totalValueOfAllShares)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -80,12 +101,9 @@ def buy():
         # get the user's cash from the database
         cash = db.execute("SELECT cash FROM users WHERE id = :id", id = session["user_id"])
 
-        # convert cash to USD
         cash = cash[0]["cash"]
-        print(cash)
 
         totalPurchase = stock["price"] * shares
-        print(totalPurchase)
 
         # check to see if user has enough cash for the stock purchase
         if cash < totalPurchase:
@@ -112,7 +130,7 @@ def buy():
             db.execute("UPDATE portfolio SET shares = :shares, current_price = :current_price, share_value = :share_value WHERE user_id = :user_id AND symbol = :symbol",
             shares=totalShares, current_price=stock["price"], share_value=share_value, user_id=session["user_id"], symbol=stock["symbol"])
 
-        return render_template("index.html")
+        return redirect(url_for('index'))
 
     else:
         return render_template("buy.html")
