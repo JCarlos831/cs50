@@ -9,6 +9,6 @@
         <ul>
             <li>Symbol: {{ stock.symbol }}</li>
             <li>Name: {{ stock.name }}</li>
-            <li>Price: {{ stock.price }}</li>
+            <li>Price: {{ stock.price | usd}}</li>
         </ul>
 {% endblock %}

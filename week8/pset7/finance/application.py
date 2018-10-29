@@ -57,12 +57,12 @@ def index():
     cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
     cash = cash[0]["cash"]
 
-    grandTotal = usd(cash + totalValueOfAllShares)
+    # grandTotal = usd(cash + totalValueOfAllShares)
 
     cash = usd(cash)
-    totalValueOfAllShares = usd(totalValueOfAllShares)
+    totalValueOfAllShares = totalValueOfAllShares
 
-    return render_template("index.html", portfolio=portfolio, grandTotal = grandTotal, cash=cash, totalValueOfAllShares=totalValueOfAllShares)
+    return render_template("index.html", portfolio=portfolio, cash=cash, totalValueOfAllShares=totalValueOfAllShares)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -88,8 +88,13 @@ def buy():
         if not shares:
             return apology("Shares must not be blank")
 
-        # Make shares an int
-        shares = int(shares)
+        # # Make shares a int
+        # shares = int(shares)
+
+        try:
+            shares = int(shares)
+        except:
+            return apology("You didn't enter a number! Shame on you.")
 
         # Ensure shares can not be zero or negative
         if shares <= 0:
@@ -227,11 +232,11 @@ def register():
             return apology("Missing username!")
         elif not request.form.get("password"):
             return apology("Missing password!")
-        elif not request.form.get("password2"):
+        elif not request.form.get("confirmation"):
             return apology("Missing password confirmation!")
 
         # Ensure passwords match
-        if not request.form.get("password") == request.form.get("password2"):
+        if not request.form.get("password") == request.form.get("confirmation"):
             return apology("Passwords do not match!")
         else:
             hash = generate_password_hash(request.form.get("password"))
@@ -321,7 +326,8 @@ def sell():
         return redirect(url_for("index"))
 
     else:
-        return render_template("sell.html")
+        stocks = db.execute("SELECT symbol FROM portfolio WHERE user_id = :user_id", user_id=session["user_id"])
+        return render_template("sell.html", stocks=stocks)
 
 @app.route("/funds", methods=["GET", "POST"])
 @login_required
@@ -350,5 +356,3 @@ def errorhandler(e):
 # listen for errors
 for code in default_exceptions:
     app.errorhandler(code)(errorhandler)
-
-
