@@ -32,21 +32,21 @@
               <td></td>
               <td></td>
               <td></td>
-              <td>{{ cash }}</td>
+              <td>{{ cash | usd}}</td>
           </tr>
           <tr>
               <th scope="row">STOCKS</th>
               <td></td>
               <td></td>
               <td></td>
-              <td>{{ totalValueOfAllShares }}</td>
+              <td>{{ totalValueOfAllShares | usd}}</td>
           </tr>
           <tr>
               <th scope="row">GRAND TOTAL:</td>
               <td></td>
               <td></td>
               <td></td>
-              <!--<td>{{ grandTotal }}</td>-->
+              <td>{{ grandTotal | usd}}</td>
           </tr>
       </tfoot>
     </table>

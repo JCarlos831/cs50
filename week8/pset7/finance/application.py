@@ -57,12 +57,17 @@ def index():
     cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
     cash = cash[0]["cash"]
 
-    # grandTotal = usd(cash + totalValueOfAllShares)
+    try:
+        totalValueOfAllShares = float(totalValueOfAllShares)
+    except:
+        totalValueOfAllShares = 0
 
-    cash = usd(cash)
-    totalValueOfAllShares = totalValueOfAllShares
+    try:
+        grandTotal = cash + totalValueOfAllShares
+    except:
+        grandTotal = 0
 
-    return render_template("index.html", portfolio=portfolio, cash=cash, totalValueOfAllShares=totalValueOfAllShares)
+    return render_template("index.html", portfolio=portfolio, cash=cash, totalValueOfAllShares=totalValueOfAllShares, grandTotal=grandTotal)
 
 
 @app.route("/buy", methods=["GET", "POST"])
