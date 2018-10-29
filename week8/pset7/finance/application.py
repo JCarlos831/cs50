@@ -54,7 +54,6 @@ def index():
 
     totalValueOfAllShares = db.execute("SELECT SUM(share_value) FROM portfolio WHERE user_id = :user_id", user_id=session["user_id"])
     totalValueOfAllShares = totalValueOfAllShares[0]['SUM(share_value)']
-    print(totalValueOfAllShares)
     cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
     cash = cash[0]["cash"]
 
@@ -62,8 +61,6 @@ def index():
 
     cash = usd(cash)
     totalValueOfAllShares = usd(totalValueOfAllShares)
-
-
 
     return render_template("index.html", portfolio=portfolio, grandTotal = grandTotal, cash=cash, totalValueOfAllShares=totalValueOfAllShares)
 
@@ -140,7 +137,9 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    history = db.execute("SELECT * FROM transactions WHERE user_id = :user_id", user_id=session["user_id"])
+
+    return render_template("history.html", history=history)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -264,7 +263,83 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+        # Ensure quote field is not blank
+        if not request.form.get("symbol"):
+            return apology("Missing stock symbol!")
+
+        # Lookup stock
+        stock = lookup(request.form.get("symbol"))
+
+        # If stock could not be found
+        if not stock:
+            return apology("Please enter a valid stock")
+
+        # Get number of shares from sell form
+        shares = request.form.get("shares")
+
+        # Ensure shares are not blank
+        if not shares:
+            return apology("Shares must not be blank")
+
+        # Make shares an int
+        shares = int(shares)
+
+        # Ensure shares can not be zero or negative
+        if shares <= 0:
+            return apology("Shares must not be Zero or Negative")
+
+        # select the symbol shares of that user
+        user_shares = db.execute("SELECT shares FROM portfolio WHERE user_id = :user_id AND symbol=:symbol", user_id=session["user_id"], symbol=stock["symbol"])
+
+        # check if enough shares to sell
+        if not user_shares or int(user_shares[0]["shares"]) < shares:
+            return apology("Not enough shares")
+
+        totalSale = stock["price"] * shares
+
+        # Update transactions
+        db.execute("INSERT INTO transactions (symbol, name, shares, price, total, user_id) VALUES (:symbol, :name, :shares, :price, :total, :user_id)",
+        symbol=stock["symbol"], name=stock["name"], shares=shares, price=stock["price"], total=totalSale, user_id=session["user_id"])
+
+        # update the user's cash
+        db.execute("UPDATE users SET cash = cash + :totalSale WHERE id = :id", id=session["user_id"], totalSale=totalSale)
+
+        # decrement the shares count
+        shares_total = user_shares[0]["shares"] - shares
+        share_value = shares_total * stock["price"]
+
+        # if after decrement is zero, delete shares from portfolio
+        if shares_total == 0:
+            db.execute("DELETE FROM portfolio WHERE user_id=:user_id AND symbol=:symbol", user_id=session["user_id"], symbol=stock["symbol"])
+        # otherwise, update portfolio shares count
+        else:
+            db.execute("UPDATE portfolio SET shares=:shares, current_price = :current_price, share_value = :share_value WHERE user_id=:user_id AND symbol=:symbol",
+            shares=shares_total, current_price=stock["price"], share_value=share_value, user_id=session["user_id"], symbol=stock["symbol"])
+
+        # return to index
+        return redirect(url_for("index"))
+
+    else:
+        return render_template("sell.html")
+
+@app.route("/funds", methods=["GET", "POST"])
+@login_required
+def funds():
+    """Add funds to user's cash"""
+    if request.method == "POST":
+        if not request.form.get("funds"):
+            return apology("You must enter an amount")
+
+        moreCash = request.form.get("funds")
+        print(moreCash)
+
+        db.execute("UPDATE users SET cash = cash + :moreCash WHERE id = :id", id=session["user_id"], moreCash=moreCash)
+
+        return redirect(url_for("index"))
+
+    else:
+        return render_template("funds.html")
 
 
 def errorhandler(e):
