@@ -17,12 +17,15 @@ app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Ensure responses aren't cached
+
+
 @app.after_request
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
 
 # Custom filter
 app.jinja_env.filters["usd"] = usd
@@ -52,7 +55,8 @@ def index():
         price = p["current_price"]
         share_value = p["share_value"]
 
-    totalValueOfAllShares = db.execute("SELECT SUM(share_value) FROM portfolio WHERE user_id = :user_id", user_id=session["user_id"])
+    totalValueOfAllShares = db.execute(
+        "SELECT SUM(share_value) FROM portfolio WHERE user_id = :user_id", user_id=session["user_id"])
     totalValueOfAllShares = totalValueOfAllShares[0]['SUM(share_value)']
     cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
     cash = cash[0]["cash"]
@@ -106,7 +110,7 @@ def buy():
             return apology("Shares must not be Zero or Negative")
 
         # get the user's cash from the database
-        cash = db.execute("SELECT cash FROM users WHERE id = :id", id = session["user_id"])
+        cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
 
         cash = cash[0]["cash"]
 
@@ -118,24 +122,26 @@ def buy():
 
         # update transactions
         db.execute("INSERT INTO transactions (symbol, name, shares, price, total, user_id) VALUES (:symbol, :name, :shares, :price, :total, :user_id)",
-        symbol=stock["symbol"], name=stock["name"], shares=shares, price=stock["price"], total=totalPurchase, user_id=session["user_id"])
+                   symbol=stock["symbol"], name=stock["name"], shares=shares, price=stock["price"], total=totalPurchase, user_id=session["user_id"])
 
         # update the user's cash
-        db.execute("UPDATE users SET cash = cash - :totalPurchase WHERE id = :id", id=session["user_id"], totalPurchase=totalPurchase)
+        db.execute("UPDATE users SET cash = cash - :totalPurchase WHERE id = :id",
+                   id=session["user_id"], totalPurchase=totalPurchase)
 
-        user_shares = db.execute("SELECT shares FROM portfolio WHERE user_id = :user_id AND symbol = :symbol", user_id=session["user_id"], symbol=stock["symbol"])
+        user_shares = db.execute("SELECT shares FROM portfolio WHERE user_id = :user_id AND symbol = :symbol",
+                                 user_id=session["user_id"], symbol=stock["symbol"])
 
         # if the user does not have any shares of a particular symbol add new stock row to portfolio
         if not user_shares:
             db.execute("INSERT INTO portfolio (symbol, name, shares, current_price, share_value, user_id) VALUES (:symbol, :name, :shares, :current_price, :share_value, :user_id)",
-            symbol=stock["symbol"], name=stock["name"], shares=shares, current_price=stock["price"], share_value=totalPurchase, user_id=session["user_id"])
+                       symbol=stock["symbol"], name=stock["name"], shares=shares, current_price=stock["price"], share_value=totalPurchase, user_id=session["user_id"])
 
         # update number of shares for the particular symbol for the particular user
         else:
             totalShares = user_shares[0]["shares"] + shares
             share_value = totalShares * stock["price"]
             db.execute("UPDATE portfolio SET shares = :shares, current_price = :current_price, share_value = :share_value WHERE user_id = :user_id AND symbol = :symbol",
-            shares=totalShares, current_price=stock["price"], share_value=share_value, user_id=session["user_id"], symbol=stock["symbol"])
+                       shares=totalShares, current_price=stock["price"], share_value=share_value, user_id=session["user_id"], symbol=stock["symbol"])
 
         return redirect(url_for('index'))
 
@@ -220,11 +226,13 @@ def quote():
     else:
         return render_template("quote.html")
 
+
 @app.route("/quoteDisplay")
 @login_required
 def quoteDisplay():
     """Display stock quote"""
     return render_template("quoteDisplay.html")
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -246,7 +254,8 @@ def register():
         else:
             hash = generate_password_hash(request.form.get("password"))
 
-        result = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)", username=request.form.get("username"), hash=hash)
+        result = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
+                            username=request.form.get("username"), hash=hash)
 
         if not result:
             return apology("User already exists")
@@ -268,6 +277,7 @@ def register():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("register.html")
+
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
@@ -300,7 +310,8 @@ def sell():
             return apology("Shares must not be Zero or Negative")
 
         # select the symbol shares of that user
-        user_shares = db.execute("SELECT shares FROM portfolio WHERE user_id = :user_id AND symbol=:symbol", user_id=session["user_id"], symbol=stock["symbol"])
+        user_shares = db.execute("SELECT shares FROM portfolio WHERE user_id = :user_id AND symbol=:symbol",
+                                 user_id=session["user_id"], symbol=stock["symbol"])
 
         # check if enough shares to sell
         if not user_shares or int(user_shares[0]["shares"]) < shares:
@@ -310,7 +321,7 @@ def sell():
 
         # Update transactions
         db.execute("INSERT INTO transactions (symbol, name, shares, price, total, user_id) VALUES (:symbol, :name, :shares, :price, :total, :user_id)",
-        symbol=stock["symbol"], name=stock["name"], shares=shares, price=stock["price"], total=totalSale, user_id=session["user_id"])
+                   symbol=stock["symbol"], name=stock["name"], shares=shares, price=stock["price"], total=totalSale, user_id=session["user_id"])
 
         # update the user's cash
         db.execute("UPDATE users SET cash = cash + :totalSale WHERE id = :id", id=session["user_id"], totalSale=totalSale)
@@ -321,11 +332,12 @@ def sell():
 
         # if after decrement is zero, delete shares from portfolio
         if shares_total == 0:
-            db.execute("DELETE FROM portfolio WHERE user_id=:user_id AND symbol=:symbol", user_id=session["user_id"], symbol=stock["symbol"])
+            db.execute("DELETE FROM portfolio WHERE user_id=:user_id AND symbol=:symbol",
+                       user_id=session["user_id"], symbol=stock["symbol"])
         # otherwise, update portfolio shares count
         else:
             db.execute("UPDATE portfolio SET shares=:shares, current_price = :current_price, share_value = :share_value WHERE user_id=:user_id AND symbol=:symbol",
-            shares=shares_total, current_price=stock["price"], share_value=share_value, user_id=session["user_id"], symbol=stock["symbol"])
+                       shares=shares_total, current_price=stock["price"], share_value=share_value, user_id=session["user_id"], symbol=stock["symbol"])
 
         # return to index
         return redirect(url_for("index"))
@@ -333,6 +345,7 @@ def sell():
     else:
         stocks = db.execute("SELECT symbol FROM portfolio WHERE user_id = :user_id", user_id=session["user_id"])
         return render_template("sell.html", stocks=stocks)
+
 
 @app.route("/funds", methods=["GET", "POST"])
 @login_required
